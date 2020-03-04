@@ -18,19 +18,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
- * NIO 异步下载图片
+ * 异步HttpClient，基于NIO，并类似Netty，实现了AIO的效果，异步非阻塞
  * @author zhouwb
  * @since 2020/2/20
  */
-public class HttpImageNIO {
+public class HttpClientAsync {
 
     public static void main(String[] args) {
 
-        HttpImageNIO httpImageNIO = new HttpImageNIO();
-        httpImageNIO.getImage();
+        HttpClientAsync clientAsync = new HttpClientAsync();
+        clientAsync.getImage();
 
     }
 
@@ -54,14 +53,14 @@ public class HttpImageNIO {
         }
         // 连接池管理器
         PoolingNHttpClientConnectionManager connectionManager = new PoolingNHttpClientConnectionManager(ioReactor);
-        connectionManager.setMaxTotal(20);   // 最大连接数
-        connectionManager.setDefaultMaxPerRoute(20);
+        connectionManager.setMaxTotal(10);   // 最大连接数
+        connectionManager.setDefaultMaxPerRoute(10); // 每个线路(route)的最大连接数，一个route对一个域名；如果只有一个route，设置为最大连接数的数值
 
         // http请求配置
         RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(10000)
-                .setSocketTimeout(10000)
-                .setConnectionRequestTimeout(10000)
+                .setConnectTimeout(1000)    // http连接握手超时时长
+                .setSocketTimeout(10000)    // 连接成功后，socket通信超时时长
+                .setConnectionRequestTimeout(10000) // 请求连接池中可用连接的超时时长
                 .build();
 
         // http请求
@@ -79,8 +78,9 @@ public class HttpImageNIO {
         CountDownLatch countDownLatch = new CountDownLatch(20);
 
         // 发送多个请求
-        for (int i = 0; i < 20; i++) {
+        for (int i = 1; i <= 20; i++) {
             httpClient.execute(httpGet, new CallBack(i, countDownLatch));
+            System.out.println("---------------------------------【请求一张】 图片编号: " + i);
         }
 
         // 等待完成
@@ -150,6 +150,7 @@ public class HttpImageNIO {
                 while ((length = inStream.read(bytes)) != -1) {
                     fileOutputStream.write(bytes, 0, length);
                 }
+                inStream.close();
                 fileOutputStream.close();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();

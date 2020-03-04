@@ -12,14 +12,15 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
+ * Httpclient示例
  * @author zhouwb
  * @since 2020/2/20
  */
-public class HttpImage {
+public class HttpClient1 {
 
     public static void main(String[] args) {
 
-        HttpImage httpImage = new HttpImage();
+        HttpClient1 httpImage = new HttpClient1();
         httpImage.getImage();
 
     }
@@ -54,6 +55,7 @@ public class HttpImage {
             while ((length = inStream.read(bytes)) != -1) {
                 fileOutputStream.write(bytes, 0, length);
             }
+            inStream.close();
             fileOutputStream.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
