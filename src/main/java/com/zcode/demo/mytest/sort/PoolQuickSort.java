@@ -3,8 +3,7 @@ package com.zcode.demo.mytest.sort;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
  * 快速排序，多线程
@@ -12,47 +11,58 @@ import java.util.concurrent.Executors;
 public class PoolQuickSort {
 
     private List<Integer> members = Collections.synchronizedList(Arrays.asList(
-            49, 38, 60, 97, 76, 13, 27, 49
+            49, 38, 60, 97, 76, 13, 27, 49, 78, 19, 20, 43, 90, 100, 41, 4, 3, 3, 31, 46, 109, 95, 98, 87, 54,43, 49,
+            49, 38, 60, 97, 76, 13, 27, 49, 78, 19, 20, 43, 90, 100, 41, 4, 3, 3, 31, 46, 109, 95, 98, 87, 54,43, 49,
+            49, 38, 60, 97, 76, 13, 27, 49, 78, 19, 20, 43, 90, 100, 41, 4, 3, 3, 31, 46, 109, 95, 98, 87, 54,43, 49,
+            49, 38, 60, 97, 76, 13, 27, 49, 78, 19, 20, 43, 90, 100, 41, 4, 3, 3, 31, 46, 109, 95, 98, 87, 54,43, 49,
+            49, 38, 60, 97, 76, 13, 27, 49, 78, 19, 20, 43, 90, 100, 41, 4, 3, 3, 31, 46, 109, 95, 98, 87, 54,43, 49,
+            49, 38, 60, 97, 76, 13, 27, 49, 78, 19, 20, 43, 90, 100, 41, 4, 3, 3, 31, 46, 109, 95, 98, 87, 54,43, 49,
+            49, 38, 60, 97, 76, 13, 27, 49, 78, 19, 20, 43, 90, 100, 41, 4, 3, 3, 31, 46, 109, 95, 98, 87, 54,43, 49,
+            49, 38, 60, 97, 76, 13, 27, 49, 78, 19, 20, 43, 90, 100, 41, 4, 3, 3, 31, 46, 109, 95, 98, 87, 54,43, 49
     ));
 
-    private ExecutorService executor = Executors.newFixedThreadPool(2);
+    private ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
 
     /**
-     * 启动排序
+     * 快速排序任务
      */
-    public void start() {
-        sort(0, members.size()-1);
-//        try {
-//            Thread.sleep(2000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-        executor.shutdown();
-    }
+    private class SortTask implements Callable<Boolean> {
 
-    /**
-     * 快速排序
-     * @param low 低位元素下标
-     * @param high 高位元素下标
-     */
-    private void sort(int low, int high) {
+        // 数组低位、高位索引
+        private int low, high;
 
-        System.out.println("thread-id:" + Thread.currentThread().getId());
+        public SortTask(int low, int high) {
+            this.low = low;
+            this.high = high;
+        }
 
-        if (low < high) {
+        @Override
+        public Boolean call() {
 
-            // 对数组进行划分，划分出基准位置
-            int pivotPosition = partition(low, high);
+            System.out.printf("thread-id:%d, isDaemon:%d, low:%d, high:%d \n",
+                    Thread.currentThread().getId(),
+                    Thread.currentThread().isDaemon() ? 1 : 0,
+                    low, high);
 
-            executor.execute(() -> {
+            if (low < high) {
+
+                // 对数组进行划分，划分出基准位置
+                int pivotPosition = partition(low, high);
+
                 // 对基准位置左边的数组进行排序
-                sort(low, pivotPosition - 1);
-            });
+                SortTask leftSortTask = new SortTask(low, pivotPosition - 1);
 
-            executor.execute(() -> {
                 // 对基准位置右边的数组进行排序
-                sort(pivotPosition + 1, high);
-            });
+                SortTask rightSortTask = new SortTask(pivotPosition + 1, high);
+
+                try {
+                    executor.invokeAll(Arrays.asList(leftSortTask, rightSortTask));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            return true;
         }
     }
 
@@ -96,6 +106,32 @@ public class PoolQuickSort {
         return low;
     }
 
+    /**
+     * 启动排序
+     */
+    public void start() {
+
+        // 创建排序任务，执行
+        SortTask task = new SortTask(0, members.size()-1);
+        Future future = executor.submit(task);
+
+        try {
+            // 等待任务执行完毕
+            future.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        System.out.printf("pool size: %d \n", executor.getPoolSize());
+
+        // 关闭线程池
+        executor.shutdown();
+
+        print();
+    }
+
     public void print() {
         for (int m : members) {
             System.out.print(m + " ");
@@ -105,6 +141,5 @@ public class PoolQuickSort {
     public static void main(String[] args) {
         PoolQuickSort quickSort = new PoolQuickSort();
         quickSort.start();
-        quickSort.print();
     }
 }

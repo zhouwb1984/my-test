@@ -11,6 +11,13 @@ import java.util.concurrent.*;
 public class ForkJoinQuickSort {
 
     private List<Integer> members = Collections.synchronizedList(Arrays.asList(
+            49, 38, 60, 97, 76, 13, 27, 49, 78, 19, 20, 43, 90, 100, 41, 4, 3, 3, 31, 46, 109, 95, 98, 87, 54,43, 49,
+            49, 38, 60, 97, 76, 13, 27, 49, 78, 19, 20, 43, 90, 100, 41, 4, 3, 3, 31, 46, 109, 95, 98, 87, 54,43, 49,
+            49, 38, 60, 97, 76, 13, 27, 49, 78, 19, 20, 43, 90, 100, 41, 4, 3, 3, 31, 46, 109, 95, 98, 87, 54,43, 49,
+            49, 38, 60, 97, 76, 13, 27, 49, 78, 19, 20, 43, 90, 100, 41, 4, 3, 3, 31, 46, 109, 95, 98, 87, 54,43, 49,
+            49, 38, 60, 97, 76, 13, 27, 49, 78, 19, 20, 43, 90, 100, 41, 4, 3, 3, 31, 46, 109, 95, 98, 87, 54,43, 49,
+            49, 38, 60, 97, 76, 13, 27, 49, 78, 19, 20, 43, 90, 100, 41, 4, 3, 3, 31, 46, 109, 95, 98, 87, 54,43, 49,
+            49, 38, 60, 97, 76, 13, 27, 49, 78, 19, 20, 43, 90, 100, 41, 4, 3, 3, 31, 46, 109, 95, 98, 87, 54,43, 49,
             49, 38, 60, 97, 76, 13, 27, 49, 78, 19, 20, 43, 90, 100, 41, 4, 3, 3, 31, 46, 109, 95, 98, 87, 54,43, 49
     ));
 
@@ -35,7 +42,10 @@ public class ForkJoinQuickSort {
         @Override
         protected void compute() {
 
-            System.out.println("thread-id:" + Thread.currentThread().getId());
+            System.out.printf("thread-id:%d, isDaemon:%d, low:%d, high:%d \n",
+                    Thread.currentThread().getId(),
+                    Thread.currentThread().isDaemon() ? 1 : 0,
+                    low, high);
 
             if (low < high) {
 
@@ -115,6 +125,8 @@ public class ForkJoinQuickSort {
          */
         forkJoinPool.invoke(sortTask);
 
+        System.out.printf("pool size: %d \n", forkJoinPool.getPoolSize());
+
         // 关闭线程池
         forkJoinPool.shutdown();
 
@@ -126,7 +138,7 @@ public class ForkJoinQuickSort {
      */
     public void print() {
         for (int m : members) {
-            System.out.print(m + " ");
+            System.out.printf("%d ", m);
         }
     }
 
