@@ -113,8 +113,7 @@ public class ForkJoinQuickSort {
             内部调用了task.join()方法，同步等待任务执行完成，返回结果。
             这是与submit(task)方法的区别，submit不会同步等待执行完成，将task放到任务队列就OK了，要手动调用join方法等待返回结果。
          */
-//        forkJoinPool.invoke(sortTask);
-        forkJoinPool.execute(sortTask);
+        forkJoinPool.invoke(sortTask);
 
         // 关闭线程池
         forkJoinPool.shutdown();
